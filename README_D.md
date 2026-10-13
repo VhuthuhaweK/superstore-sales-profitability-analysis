@@ -117,4 +117,4 @@ Exact setup steps may depend on your local file paths and installed software ver
 ## Contact
 
 **Vhuthuhawe Khorombi**  
-Add your preferred professional contact or LinkedIn profile here before publishing.
+Vhuthuhawejojos@gmail.com
