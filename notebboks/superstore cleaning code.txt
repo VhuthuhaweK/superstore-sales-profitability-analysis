@@ -1,0 +1,247 @@
+# ## WEEK 1 — DATA COLLECTION, CLEANING & PREPARATION
+
+# ## 1. OBJECTIVE
+
+# 
+# 
+# The objective of Week 1 is to transform the raw Superstore dataset into a clean, structured, and analysis-ready dataset.
+# 
+# The main activities for this week are:
+# 
+# * Inspect the dataset structure.
+# * Understand the data types.
+# * Identify missing values.
+# * Identify duplicate records.
+# * Standardise column names and formats.
+# * Check for inconsistent or invalid data.
+# * Identify potential outliers.
+# * Perform basic data-quality checks.
+# * Save a cleaned version of the dataset.
+
+# ## 2. Import Required Libraries
+
+import pandas as pd 
+import numpy as np
+
+# ## 3. Data Collection / Loading Dataset
+
+# The Superstore dataset is provided as a CSV file. Pandas is used to load the dataset into a DataFrame.
+
+df = pd.read_csv("superstore.csv", encoding="latin1")
+print("Dataset loaded successfully.")
+print(df.head())
+## The head() function displays the first five rows of the dataset.
+
+# ## 4. Inspect Dataset Structure
+
+# The structure of the dataset is inspected to understand the number of observations and variables.
+
+print("Number of rows:", df.shape[0])
+print("Number of columns:", df.shape[1])
+print("Dataset shape:", df.shape)
+df.info()
+print("Column names:")
+print(df.columns.tolist())
+
+# ## 5. Check Data Types
+
+# Different columns contain different types of information. It is important to check whether each column has an appropriate data type before performing analysis.
+
+print(df.dtypes)
+
+# ## 6. Convert Date Columns
+
+# The Order Date and Ship Date columns are converted from their original format into Pandas datetime format. This will allow the dates to be used for future time-based analysis.
+
+df["Order Date"] = pd.to_datetime(df["Order Date"])
+df["Ship Date"] = pd.to_datetime(df["Ship Date"])
+print(df[["Order Date", "Ship Date"]].dtypes)
+df[["Order Date", "Ship Date"]].head()
+
+# ## 7. Check Missing Values
+
+# Missing values are checked across all columns. This helps determine whether any records require further cleaning.
+
+missing_values = df.isnull().sum()
+print("Missing values by column:")
+print(missing_values)
+
+total_missing = df.isnull().sum().sum()
+
+print("Total missing values:", total_missing)
+missing_percentage = (df.isnull().sum() / len(df)) * 100
+print("Missing values percentage:")
+print(missing_percentage)
+#The missing values were inspected to determine whether they would affect the analysis. 
+#If missing values are identified, they should be investigated before deciding whether to remove or replace them.
+
+# ## 8. Check Duplicate Records
+
+# Duplicate records can result in transactions being counted more than once. Therefore, duplicate rows are identified before further analysis.
+
+duplicate_count = df.duplicated().sum()
+print("Duplicate rows:", duplicate_count)
+
+if duplicate_count > 0:
+    df = df.drop_duplicates()
+    print("Duplicate rows removed.")
+else:
+    print("No duplicate rows found.")
+    
+print("Duplicate rows after cleaning:", df.duplicated().sum())
+
+# ## 9. Standardise Column Names
+
+# The column names are standardised to make them easier to use in Python.
+# Spaces are replaced with underscores and column names are converted to lowercase.
+
+df.columns = (
+    df.columns
+    .str.strip()
+    .str.lower()
+    .str.replace(" ", "_")
+    .str.replace("-", "_")
+)
+
+print("Standardised column names:")
+print(df.columns.tolist())
+
+## For example:
+
+## Order Date to order_date
+
+# ## 10. Check Inconsistent Data
+
+# Categorical variables are checked for unique values. This helps identify spelling errors, unexpected categories, or inconsistent data.The unique values of categorical variables were inspected to identify possible inconsistencies. Values that represent the same category should have a consistent format before analysis.
+
+print("Categories:")
+print(df["category"].unique())
+
+print("Segments:")
+print(df["segment"].unique())
+
+print("Regions:")
+print(df["region"].unique())
+
+print("Ship Modes:")
+print(df["ship_mode"].unique())
+
+print("States:")
+print(df["state"].nunique())
+
+print("Cities:")
+print(df["city"].nunique())
+
+# ## 11. Numerical Data Analysis
+
+# The main numerical columns are inspected using descriptive statistics. This provides an initial understanding of the distribution and range of the numerical data.
+
+df[["sales", "quantity", "discount", "profit"]].describe()
+
+print("Minimum Sales:", df["sales"].min())
+print("Maximum Sales:", df["sales"].max())
+
+print("Minimum Profit:", df["profit"].min())
+print("Maximum Profit:", df["profit"].max())
+
+print("Minimum Quantity:", df["quantity"].min())
+print("Maximum Quantity:", df["quantity"].max())
+
+# ## 12. Check Invalid Values
+
+# Numerical columns are checked for values that may be invalid or require further investigation.
+# 
+# Negative profit is not automatically considered an error because it can represent a loss. However, negative sales or negative quantity would require investigation.
+
+negative_sales = (df["sales"] < 0).sum()
+negative_quantity = (df["quantity"] < 0).sum()
+negative_profit = (df["profit"] < 0).sum()
+
+print("Negative sales:", negative_sales)
+print("Negative quantity:", negative_quantity)
+print("Negative profit:", negative_profit)
+
+negative_discount = (df["discount"] < 0).sum()
+
+print("Negative discount:", negative_discount)
+
+print("Discount range:")
+print(df["discount"].min(), "to", df["discount"].max())
+
+# ## 13. Detect Outliers
+
+# Potential outliers are identified using the Interquartile Range (IQR) method.
+# 
+# The IQR method uses the first quartile (Q1) and third quartile (Q3) to identify observations that fall significantly outside the normal range.
+
+Q1 = df["sales"].quantile(0.25)
+Q3 = df["sales"].quantile(0.75)
+
+IQR = Q3 - Q1
+
+lower_bound = Q1 - (1.5 * IQR)
+upper_bound = Q3 + (1.5 * IQR)
+
+print("Q1:", Q1)
+print("Q3:", Q3)
+print("IQR:", IQR)
+print("Lower Bound:", lower_bound)
+print("Upper Bound:", upper_bound)
+
+sales_outliers = df[
+    (df["sales"] < lower_bound) |
+    (df["sales"] > upper_bound)
+]
+
+print("Potential sales outliers:", len(sales_outliers))
+sales_outliers[["product_name", "sales", "quantity", "profit"]].head(10)
+
+# ## 14. Create Cleaned Dataset
+
+# After completing the initial cleaning and preparation steps, a copy of the cleaned DataFrame is created.
+
+cleaned_df = df.copy()
+
+print("Cleaned dataset created.")
+
+cleaned_df.head()
+
+print("Final dataset shape:", cleaned_df.shape)
+print("Total missing values:", cleaned_df.isnull().sum().sum())
+print("Total duplicate rows:", cleaned_df.duplicated().sum())
+print("Final data types:")
+
+print(cleaned_df.dtypes)
+print("Final column names:")
+
+print(cleaned_df.columns.tolist())
+
+# ## 15. Basic Dataset Metrics
+
+# Basic metrics are calculated to provide an initial understanding of the Superstore dataset.
+
+total_sales = cleaned_df["sales"].sum()
+
+total_profit = cleaned_df["profit"].sum()
+
+total_quantity = cleaned_df["quantity"].sum()
+
+print("Total Sales:", total_sales)
+
+print("Total Profit:", total_profit)
+
+print("Total Quantity:", total_quantity)
+
+print("Number of Orders:", cleaned_df["order_id"].nunique())
+
+print("Number of Customers:", cleaned_df["customer_id"].nunique())
+
+print("Number of Products:", cleaned_df["product_id"].nunique())
+
+# ## 16. Save Cleaned Dataset
+
+# The cleaned dataset is saved as a new CSV file. The original raw dataset is kept unchanged so that the cleaning process can be reproduced if required.
+
+cleaned_df.to_csv("superstore_cleaned.csv", index=False)
+print("Cleaned dataset saved successfully as 'superstore_cleaned.csv'.")
+
